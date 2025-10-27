@@ -1,18 +1,29 @@
 package br.senai.sp.jandira.mediafinal.ui;
 
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.util.Optional;
+
 public class TelaMediaFinal extends Application {
+
+
+    VBox painelResultado;
+
+    TextField tfNomeAluno;
+    TextField tfNota1;
+    TextField tfNota2;
+    TextField tfNota3;
+    TextField tfNota4;
+
 
 
     @Override
@@ -46,11 +57,11 @@ public class TelaMediaFinal extends Application {
         Label lblNota3 = new Label("Nota 3:");
         Label lblNota4 = new Label("Nota 4:");
 
-        TextField tfNomeAluno = new TextField(); // Criando barra para escrever o nome do aluno, utilizando TextField
-        TextField tfNota1 = new TextField(); // Criando barra para escrever as Notas do aluno
-        TextField tfNota2 = new TextField();
-        TextField tfNota3 = new TextField();
-        TextField tfNota4 = new TextField();
+        tfNomeAluno = new TextField(); // Criando barra para escrever o nome do aluno, utilizando TextField
+        tfNota1 = new TextField(); // Criando barra para escrever as Notas do aluno
+        tfNota2 = new TextField();
+        tfNota3 = new TextField();
+        tfNota4 = new TextField();
 
         painelFormulario.getChildren().addAll(
                 lblNomeAluno, tfNomeAluno,
@@ -88,12 +99,20 @@ public class TelaMediaFinal extends Application {
         );
 
         // Criando resultados
-        VBox painelResultado = new VBox();
+        painelResultado = new VBox();
+        painelResultado.setPadding(new Insets(15));
         painelResultado.setStyle("-fx-background-color: #4169E1");
-        Label lblResultados = new Label("Resultados:");
-        Label lblNomeResultado = new Label("Nome do Aluno:");
-        Label lblMediaFinal = new Label("Média Final:");
-        Label lblSituacao = new Label("Situação:");
+        Label lblResultados = new Label("Resultados");
+        lblResultados.setStyle("-fx-font-size: 22px ;-fx-text-fill: white; -fx-font-weight: bold;");
+
+        Label lblNomeResultado = new Label("Nome do Aluno: ");
+        lblNomeResultado.setStyle("-fx-text-fill: white");
+
+        Label lblMediaFinal = new Label("Média Final: ");
+        lblMediaFinal.setStyle("-fx-text-fill: white");
+
+        Label lblSituacao = new Label("Situação: ");
+        lblSituacao.setStyle("-fx-text-fill: white");
 
         painelResultado.getChildren().addAll(
                 lblResultados, lblNomeResultado,
@@ -117,5 +136,128 @@ public class TelaMediaFinal extends Application {
 
         // Mostrar a scene
         stage.show();
+
+
+
+
+        // ***** Interceptar cliques dos botões *****
+        btCalularMedia.setOnAction(e -> {
+
+            // Colocando uma mensagem de erro caso o usuario não digite alguma informação
+            if (validarEntrada()) {
+                String nomeAluno = tfNomeAluno.getText();
+                lblNomeResultado.setText("Nome do Aluno: " + nomeAluno);
+
+                String nota1 = tfNota1.getText();
+                String nota2 = tfNota2.getText();
+                String nota3 = tfNota3.getText();
+                String nota4 = tfNota4.getText();
+
+                double media = calcularMedia(nota1, nota2, nota3, nota4);
+                String mediaformatada = String.format("%.2f", media);
+                lblMediaFinal.setText("Media Final: " + mediaformatada);
+
+                String situacao = definirSituacao(media);
+                lblSituacao.setText("Situação: " + situacao);
+            }
+        });
+
+        // Botão de limpar
+        btLimpar.setOnAction(e -> {
+            tfNomeAluno.setText("");
+            tfNota1.setText("");
+            tfNota2.setText("");
+            tfNota3.setText("");
+            tfNota4.setText("");
+            lblNomeResultado.setText("nome do aluno: ");
+            lblMediaFinal.setText("media final: ");
+            lblSituacao.setText("situacao: ");
+            tfNomeAluno.requestFocus();
+
+        });
+
+        // Botão de sair
+        btSair.setOnAction(e -> {
+            // Criando o botão de alerta e colocando uma mensagem diferente
+            Alert alerta = new Alert(Alert.AlertType.CONFIRMATION, "Deseja sair do aplicativo?", ButtonType.YES, ButtonType.NO);
+
+            Optional<ButtonType> resposta = alerta.showAndWait();
+            if (resposta.get() == ButtonType.YES) {
+                System.exit(0);
+            }
+
+            System.out.println(resposta.get().getText());
+        });
+
+    }
+
+
+
+
+    // criando uma variavel privada
+    private double calcularMedia(String n1, String n2, String n3, String n4) {
+
+
+        double nota1 = Double.parseDouble(n1);
+        double nota2 = Double.parseDouble(n2);
+        double nota3 = Double.parseDouble(n3);
+        double nota4 = Double.parseDouble(n4);
+        double media = (nota1 + nota2 + nota3 + nota4) / 4;
+        return media;
+
+    }
+
+    private String definirSituacao(double media){
+
+        if (media < 4.0){
+            painelResultado.setStyle("-fx-background-color: #f60d0d;");
+            return  "REPROVADO!";
+        } else if (media >= 6.0) {
+            painelResultado.setStyle("-fx-background-color: #27b816;");
+            return "APROVADO!";
+        }else {
+            painelResultado.setStyle("-fx-background-color: #ff8000;");
+            return "RECUPERAÇÃO!";
+        }
+
+
+
+    }
+
+    private boolean validarEntrada(){
+
+        if (tfNomeAluno.getText().isEmpty()){
+            mostrarMensagem(Alert.AlertType.ERROR, "Preencha o nome do aluno!!");
+            tfNomeAluno.requestFocus();
+            return false;
+
+        }else if (tfNota1.getText().isEmpty()){
+            mostrarMensagem(Alert.AlertType.ERROR, "Preencha a primeira nota aluno!!");
+            tfNota1.requestFocus();
+            return false;
+
+        }else if (tfNota2.getText().isEmpty()){
+            mostrarMensagem(Alert.AlertType.ERROR, "Preencha a segunda nota aluno!!");
+            tfNota2.requestFocus();
+            return false;
+
+        }else if (tfNota3.getText().isEmpty()){
+            mostrarMensagem(Alert.AlertType.ERROR, "Preencha a terceira nota aluno!!");
+            tfNota3.requestFocus();
+            return false;
+
+        } else if (tfNota4.getText().isEmpty()) {
+            mostrarMensagem(Alert.AlertType.ERROR , "Preencha a quarta nota aluno!!");
+            tfNota4.requestFocus();
+            return false;
+        }else {
+            return true;
+        }
+
+    }
+
+    private void mostrarMensagem (Alert.AlertType tipo , String mensagem){
+        Alert alerta = new Alert(tipo, mensagem);
+        alerta.showAndWait();
     }
 }
